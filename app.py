@@ -10,22 +10,15 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- Google Sheets setup ---
-scope = [
-    "https://www.googleapis.com/auth/spreadsheets",
-    "https://www.googleapis.com/auth/drive"
-]
-
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 creds = ServiceAccountCredentials.from_json_keyfile_name("service_account.json", scope)
 client = gspread.authorize(creds)
+sheet = client.open("GDSC_Registrations").sheet1
 
-try:
-    spreadsheet = client.open("GDSC_Registrations")   # <-- sheet ka exact naam
-    sheet = spreadsheet.sheet1
-    st.success(f"✅ Connected to sheet: {spreadsheet.title}")
-except Exception as e:
-    st.error(f"❌ Could not connect to Google Sheet: {e}")
-
+# 🔹 Function must be defined BEFORE calling
+def add_registration(data):
+    """Add a row to Google Sheet"""
+    sheet.append_row(data)
 
 # --- Custom CSS ---
 st.markdown("""
@@ -171,6 +164,7 @@ elif st.session_state.view == "info":
     if st.button("⬅ Back to Events"):
         go_back()
     st.markdown('</div>', unsafe_allow_html=True)
+
 
 
 
