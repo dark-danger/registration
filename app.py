@@ -141,11 +141,13 @@ with st.form("registration_form"):
 
 if submit:
     if not waiver:
-        st.warning("You must agree to the rules to register.")
+        st.error("⚠ Please agree to waiver")
+    elif not name or not email or not phone:
+        st.error("⚠ Fill all required fields")
     else:
-        # gsheet update function call karo
-        append_to_gsheet([full_name, email, contact, event])
-        st.success("Registration successful!")
+        # ✅ Correct function call
+        add_registration([name, email, phone, roll, sem, depart, st.session_state.selected_event])
+        st.success(f"🎉 Registered for {st.session_state.selected_event}!")
 
 # --- Event Info View ---
 elif st.session_state.view == "info":
@@ -160,5 +162,6 @@ elif st.session_state.view == "info":
     
     if st.button("⬅ Back to Events"): go_back()
     st.markdown('</div>', unsafe_allow_html=True)
+
 
 
