@@ -1,6 +1,7 @@
 import streamlit as st
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+import json
 
 # --- Page Config ---
 st.set_page_config(
@@ -159,4 +160,5 @@ elif st.session_state.view == "info":
     
     if st.button("⬅ Back to Events"): go_back()
     st.markdown('</div>', unsafe_allow_html=True)
+
 
