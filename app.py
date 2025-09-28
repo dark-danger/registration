@@ -122,39 +122,40 @@ if st.session_state.view == "gallery":
     st.markdown('</div>', unsafe_allow_html=True)
 
 # --- Registration Form View ---
+# --- Registration Form View ---
 elif st.session_state.view == "form":
     st.markdown('<div class="center-container">', unsafe_allow_html=True)
     st.subheader(f"📝 Register for {st.session_state.selected_event}")
-    
-with st.form("register_form"):
-    name = st.text_input("Full Name")
-    email = st.text_input("Email Address")
-    phone = st.text_input("Mobile No.")
-    roll = st.text_input("Roll Number.")
-    sem = st.text_input("Semester.")
-    depart = st.text_input("Department.")
-    event = st.text_input("Event Name")
 
-    waiver = st.checkbox("I agree to the terms and conditions")
+    with st.form("register_form"):
+        name = st.text_input("Full Name")
+        email = st.text_input("Email Address")
+        phone = st.text_input("Mobile No.")
+        roll = st.text_input("Roll Number.")
+        sem = st.text_input("Semester.")
+        depart = st.text_input("Department.")
 
-    col1, col2 = st.columns(2)
-    with col1:
-        submit = st.form_submit_button("✅ Submit")
-    with col2:
-        back = st.form_submit_button("⬅ Back")
+        waiver = st.checkbox("I agree to the terms and conditions")
 
-    # 🔴 Yaha variables already defined, ab ye check karo
-    if back:
-        go_back()
-    if submit:
-        if not waiver:
-            st.error("⚠ Please agree to waiver")
-        elif not name or not email or not phone:
-            st.error("⚠ Fill all required fields")
-        else:
-            add_registration([name, email, phone, roll, sem, depart, st.session_state.selected_event])
-            st.success(f"🎉 Registered for {st.session_state.selected_event}!")
+        col1, col2 = st.columns(2)
+        with col1:
+            submit = st.form_submit_button("✅ Submit")
+        with col2:
+            back = st.form_submit_button("⬅ Back")
 
+        # 🔴 Form submit logic
+        if back:
+            go_back()
+        elif submit:  # use elif so back and submit don't clash
+            if not waiver:
+                st.error("⚠ Please agree to waiver")
+            elif not name or not email or not phone:
+                st.error("⚠ Fill all required fields")
+            else:
+                add_registration([name, email, phone, roll, sem, depart, st.session_state.selected_event])
+                st.success(f"🎉 Registered for {st.session_state.selected_event}!")
+
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # --- Event Info View ---
 elif st.session_state.view == "info":
@@ -167,8 +168,11 @@ elif st.session_state.view == "info":
     for r in ev["rules"]:
         st.markdown(f"- {r}")
     
-    if st.button("⬅ Back to Events"): go_back()
+    if st.button("⬅ Back to Events"):
+        go_back()
     st.markdown('</div>', unsafe_allow_html=True)
+
+
 
 
 
