@@ -1,22 +1,24 @@
 import streamlit as st
+from datetime import date
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+
 
 # --- Page Config ---
 st.set_page_config(
     page_title="GDSC Event Registration",
-    page_icon="images/gdsc.png",
+    page_icon="images/gdsc.png",  # local file path
     layout="wide"
 )
-
-# --- Google Sheets Setup ---
+# --- Google Sheets setup ---
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 creds = ServiceAccountCredentials.from_json_keyfile_name("service_account.json", scope)
 client = gspread.authorize(creds)
-sheet = client.open("GDSC_Registrations").sheet1
+
+sheet = client.open("GDSC_Registrations").sheet1  # replace with your sheet name
 
 def add_registration(data):
-    """Add a row to Google Sheet"""
+    """data = [Name, Email, Phone, Roll, Sem, Dept, Event]"""
     sheet.append_row(data)
 
 # --- Custom CSS ---
@@ -37,6 +39,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- Events Data ---
+# --- Events Data ---
 events = [
     {"name": "Google Sparks", 
      "image": "https://i.postimg.cc/QNvRLvvB/1.png", 
@@ -56,7 +59,7 @@ events = [
     {"name": "Startup Pitch", 
      "image": "https://i.postimg.cc/YCMDM73s/4.png", 
      "desc": "Pitch your innovative startup idea to judges and get feedback or funding opportunities.", 
-     "rules": ["Pitch time: 5 minutes", "Slides allowed (max 5)", "Judges Q&A mandatory", "Original ideas only"]}
+     "rules": ["Pitch time: 5 minutes", "Slides allowed (max 5) ,", "Judges Q&A mandatory", "Original ideas only"]}
 ]
 
 # --- Session State ---
@@ -65,28 +68,30 @@ if "view" not in st.session_state:
 if "selected_event" not in st.session_state:
     st.session_state.selected_event = None
 
-# --- Navigation Functions ---
-def go_to_form(event): 
-    st.session_state.selected_event, st.session_state.view = event, "form"
-def go_to_info(event): 
-    st.session_state.selected_event, st.session_state.view = event, "info"
-def go_back(): 
-    st.session_state.selected_event, st.session_state.view = None, "gallery"
+# --- Functions ---
+def go_to_form(event): st.session_state.selected_event, st.session_state.view = event, "form"
+def go_to_info(event): st.session_state.selected_event, st.session_state.view = event, "info"
+def go_back(): st.session_state.selected_event, st.session_state.view = None, "gallery"
 
 # --- Header ---
 st.markdown("""
   <div class="header-container" style="display:flex; align-items:center; gap:10px;">
+    <!-- New local logo -->
     <img src="https://geetauniversity.com/assets/images/logo.png" width="80" alt="My Logo">
     <div class="header-title">GDSC Event Registration</div>
     <img src="https://i.postimg.cc/zGKXhCYY/gdsc.png" width="120" alt="Geeta University Logo">
-  </div>
+</div>
+
+
 """, unsafe_allow_html=True)
 
 # --- Gallery View ---
 if st.session_state.view == "gallery":
     st.markdown('<div class="center-container">', unsafe_allow_html=True)
+    
     st.subheader("🔥Events")
     
+    # Loop through events 2 per row
     for i in range(0, len(events), 2):
         cols = st.columns(2)
         for j in range(2):
@@ -100,54 +105,52 @@ if st.session_state.view == "gallery":
                             <p style="font-size:14px; color:#555;">{ev['desc']}</p>
                         </div>
                     """, unsafe_allow_html=True)
+                    
+                    # Buttons side by side
                     col_btn1, col_btn2 = st.columns([1,1])
                     with col_btn1:
-                        if st.button("Register", key=f"reg_{i+j}"):
-                            go_to_form(ev["name"])
+                        if st.button("Register", key=f"reg_{i+j}"): go_to_form(ev["name"])
                     with col_btn2:
-                        if st.button("Event Info", key=f"info_{i+j}"):
-                            go_to_info(ev["name"])
+                        if st.button("Event Info", key=f"info_{i+j}"): go_to_info(ev["name"])
+    
     st.markdown('</div>', unsafe_allow_html=True)
 
 # --- Registration Form View ---
 elif st.session_state.view == "form":
     st.markdown('<div class="center-container">', unsafe_allow_html=True)
     st.subheader(f"📝 Register for {st.session_state.selected_event}")
+    
+with st.form("registration_form"):
+    full_name = st.text_input("Full Name", "")
+    email = st.text_input("Email Address", "")
+    contact = st.text_input("Contact Number", "")
+    roll = st.text_input("Roll Number", "")
+    depart = st.text_input("Department", "")
+    
+    event = st.selectbox("Select Event", ["Google Sparks", "Tech Quizathon", "Robotics Showdown"])
+    waiver = st.checkbox("I agree to the rules and regulations")
 
-    with st.form("register_form"):
-        name = st.text_input("Full Name")
-        email = st.text_input("Email Address")
-        phone = st.text_input("Mobile No.")
-        roll = st.text_input("Roll Number.")
-        sem = st.text_input("Semester.")
-        depart = st.text_input("Department.")
-        waiver = st.checkbox("I agree to the terms and conditions")
+    # yahan submit button define karo
+    submit = st.form_submit_button("Submit")
 
-        col1, col2 = st.columns(2)
-        with col1: submit = st.form_submit_button("✅ Submit")
-        with col2: back = st.form_submit_button("⬅ Back")
-
-        if back:
-            go_back()
-        elif submit:
-            if not waiver:
-                st.error("⚠ Please agree to waiver")
-            elif not name or not email or not phone:
-                st.error("⚠ Fill all required fields")
-            else:
-                add_registration([name, email, phone, roll, sem, depart, st.session_state.selected_event])
-                st.success(f"🎉 Registered for {st.session_state.selected_event}!")
-    st.markdown('</div>', unsafe_allow_html=True)
+if submit:
+    if not waiver:
+        st.warning("You must agree to the rules to register.")
+    else:
+        # gsheet update function call karo
+        append_to_gsheet([full_name, email, contact, event])
+        st.success("Registration successful!")
 
 # --- Event Info View ---
 elif st.session_state.view == "info":
     ev = next(e for e in events if e["name"] == st.session_state.selected_event)
     st.markdown('<div class="center-container">', unsafe_allow_html=True)
+    
     st.subheader(f"📘 {ev['name']} Info")
     st.markdown(f"**Description:** {ev['desc']}")
     st.markdown("**Rules:**")
     for r in ev["rules"]:
         st.markdown(f"- {r}")
-    if st.button("⬅ Back to Events"):
-        go_back()
+    
+    if st.button("⬅ Back to Events"): go_back()
     st.markdown('</div>', unsafe_allow_html=True)
