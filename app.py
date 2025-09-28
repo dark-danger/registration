@@ -1,25 +1,30 @@
 import streamlit as st
-from datetime import date
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
-
 
 # --- Page Config ---
 st.set_page_config(
     page_title="GDSC Event Registration",
-    page_icon="images/gdsc.png",  # local file path
+    page_icon="images/gdsc.png",
     layout="wide"
 )
+
 # --- Google Sheets setup ---
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+scope = [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive"
+]
+
 creds = ServiceAccountCredentials.from_json_keyfile_name("service_account.json", scope)
 client = gspread.authorize(creds)
 
-sheet = client.open("GDSC_Registrations").sheet1  # replace with your sheet name
+try:
+    spreadsheet = client.open("GDSC_Registrations")   # <-- sheet ka exact naam
+    sheet = spreadsheet.sheet1
+    st.success(f"✅ Connected to sheet: {spreadsheet.title}")
+except Exception as e:
+    st.error(f"❌ Could not connect to Google Sheet: {e}")
 
-def add_registration(data):
-    """data = [Name, Email, Phone, Roll, Sem, Dept, Event]"""
-    sheet.append_row(data)
 
 # --- Custom CSS ---
 st.markdown("""
@@ -154,3 +159,4 @@ elif st.session_state.view == "info":
     
     if st.button("⬅ Back to Events"): go_back()
     st.markdown('</div>', unsafe_allow_html=True)
+
